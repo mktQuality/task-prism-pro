@@ -13,7 +13,7 @@ import {
   Calendar,
   Plus
 } from "lucide-react";
-import { Task } from "@/types/task";
+import { Task } from "@/types/database";
 
 interface DashboardViewProps {
   tasks: Task[];
@@ -22,16 +22,16 @@ interface DashboardViewProps {
 export const DashboardView = ({ tasks }: DashboardViewProps) => {
   const completedTasks = tasks.filter(t => t.status === 'concluida').length;
   const pendingTasks = tasks.filter(t => t.status === 'pendente').length;
-  const overdueTasks = tasks.filter(t => new Date() > t.dueDate && t.status !== 'concluida').length;
+  const overdueTasks = tasks.filter(t => new Date() > new Date(t.due_date) && t.status !== 'concluida').length;
   const urgentTasks = tasks.filter(t => t.priority === 'urgente').length;
 
   const recentTasks = tasks
-    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
     .slice(0, 5);
 
   const upcomingTasks = tasks
     .filter(t => t.status !== 'concluida')
-    .sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime())
+    .sort((a, b) => new Date(a.due_date).getTime() - new Date(b.due_date).getTime())
     .slice(0, 4);
 
   const completionRate = tasks.length > 0 ? Math.round((completedTasks / tasks.length) * 100) : 0;

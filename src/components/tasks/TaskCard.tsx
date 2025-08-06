@@ -3,7 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
-import { Task } from "@/types/task";
+import { Task } from "@/types/database";
 import { 
   Calendar, 
   User, 
@@ -21,7 +21,7 @@ interface TaskCardProps {
 }
 
 export const TaskCard = ({ task, onTaskClick }: TaskCardProps) => {
-  const isOverdue = new Date() > task.dueDate && task.status !== 'concluida';
+  const isOverdue = new Date() > new Date(task.due_date) && task.status !== 'concluida';
   
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -95,7 +95,7 @@ export const TaskCard = ({ task, onTaskClick }: TaskCardProps) => {
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
             <Calendar className="h-3 w-3" />
             <span>
-              Vence em {format(task.dueDate, "dd/MM/yyyy", { locale: ptBR })}
+              Vence em {format(new Date(task.due_date), "dd/MM/yyyy", { locale: ptBR })}
             </span>
             {isOverdue && (
               <Badge variant="destructive" className="text-xs py-0">
@@ -106,24 +106,26 @@ export const TaskCard = ({ task, onTaskClick }: TaskCardProps) => {
           
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              {task.assignedTo && (
+              {task.assigned_to_profile && (
                 <div className="flex items-center gap-1">
                   <Avatar className="h-6 w-6">
                     <AvatarFallback className="text-xs">
-                      {task.assignedTo.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                      {task.assigned_to_profile.name.split(' ').map(n => n[0]).join('').toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
                   <span className="text-xs text-muted-foreground">
-                    {task.assignedTo.name}
+                    {task.assigned_to_profile.name}
                   </span>
                 </div>
               )}
             </div>
             
             <div className="flex items-center gap-1">
-              <Badge variant="outline" className="text-xs">
-                {task.classification.name}
-              </Badge>
+              {task.classification && (
+                <Badge variant="outline" className="text-xs">
+                  {task.classification.name}
+                </Badge>
+              )}
               {task.comments.length > 0 && (
                 <div className="flex items-center gap-1 text-muted-foreground">
                   <MessageCircle className="h-3 w-3" />

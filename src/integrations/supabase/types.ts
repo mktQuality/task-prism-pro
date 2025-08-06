@@ -14,7 +14,125 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      profiles: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          name: string
+          role: Database["public"]["Enums"]["user_role"]
+          sector: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          name: string
+          role?: Database["public"]["Enums"]["user_role"]
+          sector?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          name?: string
+          role?: Database["public"]["Enums"]["user_role"]
+          sector?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      task_classifications: {
+        Row: {
+          color: string
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          color: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          color?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
+      tasks: {
+        Row: {
+          assigned_to: string | null
+          classification_id: string | null
+          comments: string[] | null
+          completed_at: string | null
+          created_at: string
+          created_by: string
+          delegated_by: string | null
+          description: string | null
+          due_date: string
+          id: string
+          is_project: boolean
+          priority: Database["public"]["Enums"]["task_priority"]
+          status: Database["public"]["Enums"]["task_status"]
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          assigned_to?: string | null
+          classification_id?: string | null
+          comments?: string[] | null
+          completed_at?: string | null
+          created_at?: string
+          created_by: string
+          delegated_by?: string | null
+          description?: string | null
+          due_date: string
+          id?: string
+          is_project?: boolean
+          priority?: Database["public"]["Enums"]["task_priority"]
+          status?: Database["public"]["Enums"]["task_status"]
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          assigned_to?: string | null
+          classification_id?: string | null
+          comments?: string[] | null
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string
+          delegated_by?: string | null
+          description?: string | null
+          due_date?: string
+          id?: string
+          is_project?: boolean
+          priority?: Database["public"]["Enums"]["task_priority"]
+          status?: Database["public"]["Enums"]["task_status"]
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tasks_classification_id_fkey"
+            columns: ["classification_id"]
+            isOneToOne: false
+            referencedRelation: "task_classifications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -23,7 +141,9 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      task_priority: "baixa" | "media" | "alta" | "urgente"
+      task_status: "pendente" | "em_progresso" | "concluida" | "atrasada"
+      user_role: "admin" | "gestao" | "supervisao" | "usuario"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +270,10 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      task_priority: ["baixa", "media", "alta", "urgente"],
+      task_status: ["pendente", "em_progresso", "concluida", "atrasada"],
+      user_role: ["admin", "gestao", "supervisao", "usuario"],
+    },
   },
 } as const

@@ -1,15 +1,25 @@
 import { useState } from "react";
 import { Sidebar } from "@/components/layout/Sidebar";
+import { Header } from "@/components/layout/Header";
 import { DashboardView } from "@/components/dashboard/DashboardView";
-import { mockTasks } from "@/data/mockData";
+import { useTasks } from "@/hooks/useTasks";
 
 const Index = () => {
   const [activeSection, setActiveSection] = useState("dashboard");
+  const { data: tasks = [], isLoading } = useTasks();
 
   const renderContent = () => {
+    if (isLoading) {
+      return (
+        <div className="p-6 flex items-center justify-center">
+          <div className="text-lg">Carregando tarefas...</div>
+        </div>
+      );
+    }
+
     switch (activeSection) {
       case "dashboard":
-        return <DashboardView tasks={mockTasks} />;
+        return <DashboardView tasks={tasks} />;
       case "tasks":
         return <div className="p-6">Gerenciamento de Tarefas (Em desenvolvimento)</div>;
       case "urgent":
@@ -23,7 +33,7 @@ const Index = () => {
       case "settings":
         return <div className="p-6">Configurações (Em desenvolvimento)</div>;
       default:
-        return <DashboardView tasks={mockTasks} />;
+        return <DashboardView tasks={tasks} />;
     }
   };
 
@@ -33,11 +43,14 @@ const Index = () => {
         activeSection={activeSection} 
         onSectionChange={setActiveSection} 
       />
-      <main className="flex-1 overflow-auto">
-        <div className="p-6">
-          {renderContent()}
-        </div>
-      </main>
+      <div className="flex-1 flex flex-col overflow-hidden">
+        <Header />
+        <main className="flex-1 overflow-auto">
+          <div className="p-6">
+            {renderContent()}
+          </div>
+        </main>
+      </div>
     </div>
   );
 };
