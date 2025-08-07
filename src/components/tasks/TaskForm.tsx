@@ -220,7 +220,6 @@ export const TaskForm = ({ task, open, onOpenChange }: TaskFormProps) => {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="">Nenhuma classificação</SelectItem>
                         {classifications.map((classification) => (
                           <SelectItem key={classification.id} value={classification.id}>
                             {classification.name}
