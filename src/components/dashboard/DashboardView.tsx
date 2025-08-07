@@ -1,160 +1,135 @@
-import { StatsCard } from "./StatsCard";
-import { TaskCard } from "../tasks/TaskCard";
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
-import { 
-  CheckSquare, 
-  Clock, 
-  AlertTriangle, 
-  Users,
-  TrendingUp,
-  Calendar,
-  Plus
-} from "lucide-react";
+import { TaskStatsWidget } from "./TaskStatsWidget";
+import { RecentTasksWidget } from "./RecentTasksWidget";
+import { TaskDetail } from "../tasks/TaskDetail";
 import { Task } from "@/types/database";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import { useCurrentProfile } from "@/hooks/useProfiles";
+import { Calendar, Clock, AlertTriangle } from "lucide-react";
 
 interface DashboardViewProps {
   tasks: Task[];
 }
 
 export const DashboardView = ({ tasks }: DashboardViewProps) => {
-  const completedTasks = tasks.filter(t => t.status === 'concluida').length;
-  const pendingTasks = tasks.filter(t => t.status === 'pendente').length;
-  const overdueTasks = tasks.filter(t => new Date() > new Date(t.due_date) && t.status !== 'concluida').length;
-  const urgentTasks = tasks.filter(t => t.priority === 'urgente').length;
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const { data: currentProfile } = useCurrentProfile();
 
-  const recentTasks = tasks
-    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-    .slice(0, 5);
+  const todaysTasks = tasks.filter(task => {
+    const dueDate = new Date(task.due_date);
+    const today = new Date();
+    return dueDate.toDateString() === today.toDateString();
+  });
 
-  const upcomingTasks = tasks
-    .filter(t => t.status !== 'concluida')
-    .sort((a, b) => new Date(a.due_date).getTime() - new Date(b.due_date).getTime())
-    .slice(0, 4);
-
-  const completionRate = tasks.length > 0 ? Math.round((completedTasks / tasks.length) * 100) : 0;
+  const overdueTasks = tasks.filter(task => {
+    const dueDate = new Date(task.due_date);
+    const today = new Date();
+    return dueDate < today && task.status !== 'concluida';
+  });
 
   return (
     <div className="space-y-6">
+      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">Dashboard</h1>
           <p className="text-muted-foreground">
-            Visão geral do seu sistema de tarefas
+            Bem-vindo, {currentProfile?.name || 'Usuário'}! Aqui está o resumo das suas atividades.
           </p>
         </div>
-        <Button className="bg-gradient-to-r from-primary to-primary/90">
-          <Plus className="h-4 w-4 mr-2" />
-          Nova Tarefa
-        </Button>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <StatsCard
-          title="Tarefas Concluídas"
-          value={completedTasks}
-          icon={CheckSquare}
-          variant="success"
-          trend={{ value: 12, isPositive: true }}
-        />
-        <StatsCard
-          title="Tarefas Pendentes"
-          value={pendingTasks}
-          icon={Clock}
-          variant="warning"
-        />
-        <StatsCard
-          title="Tarefas Atrasadas"
-          value={overdueTasks}
-          icon={AlertTriangle}
-          variant="destructive"
-        />
-        <StatsCard
-          title="Tarefas Urgentes"
-          value={urgentTasks}
-          icon={Users}
-          variant="default"
-        />
-      </div>
+      {/* Main Stats */}
+      <TaskStatsWidget tasks={tasks} />
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Progress Overview */}
-        <Card className="lg:col-span-1">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <TrendingUp className="h-5 w-5" />
-              Progresso Geral
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <div className="flex justify-between text-sm mb-2">
-                <span>Taxa de Conclusão</span>
-                <span className="font-medium">{completionRate}%</span>
-              </div>
-              <Progress value={completionRate} className="h-2" />
-            </div>
-            
-            <div className="space-y-2">
-              <div className="flex justify-between items-center">
-                <span className="text-sm">Concluídas</span>
-                <Badge variant="outline" className="bg-success/10 text-success border-success/20">
-                  {completedTasks}
-                </Badge>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm">Em Progresso</span>
-                <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20">
-                  {tasks.filter(t => t.status === 'em_progresso').length}
-                </Badge>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm">Pendentes</span>
-                <Badge variant="outline" className="bg-warning/10 text-warning border-warning/20">
-                  {pendingTasks}
-                </Badge>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
+      {/* Content Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Recent Tasks */}
-        <Card className="lg:col-span-2">
+        <RecentTasksWidget 
+          tasks={tasks} 
+          onTaskClick={setSelectedTask}
+        />
+
+        {/* Today's Tasks */}
+        <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Clock className="h-5 w-5" />
-              Tarefas Recentes
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Calendar className="h-5 w-5" />
+              Tarefas de Hoje ({todaysTasks.length})
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3">
-              {recentTasks.map((task) => (
-                <TaskCard key={task.id} task={task} />
+            {todaysTasks.length === 0 ? (
+              <p className="text-muted-foreground text-center py-8">
+                Nenhuma tarefa para hoje
+              </p>
+            ) : (
+              <div className="space-y-3">
+                {todaysTasks.slice(0, 4).map((task) => (
+                  <div
+                    key={task.id}
+                    className="flex items-center gap-3 p-2 rounded border cursor-pointer hover:bg-muted/50"
+                    onClick={() => setSelectedTask(task)}
+                  >
+                    <div className={`w-2 h-2 rounded-full ${
+                      task.priority === 'urgente' ? 'bg-destructive' :
+                      task.priority === 'alta' ? 'bg-warning' : 'bg-primary'
+                    }`} />
+                    <div className="flex-1">
+                      <p className="font-medium text-sm">{task.title}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {task.assigned_to_profile?.name || 'Não atribuída'}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Overdue Tasks Alert */}
+      {overdueTasks.length > 0 && (
+        <Card className="border-destructive/20 bg-destructive/5">
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center gap-2 text-destructive">
+              <AlertTriangle className="h-5 w-5" />
+              Tarefas Atrasadas ({overdueTasks.length})
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              {overdueTasks.slice(0, 3).map((task) => (
+                <div
+                  key={task.id}
+                  className="flex items-center gap-3 p-2 rounded border border-destructive/20 cursor-pointer hover:bg-destructive/10"
+                  onClick={() => setSelectedTask(task)}
+                >
+                  <Clock className="h-4 w-4 text-destructive" />
+                  <div className="flex-1">
+                    <p className="font-medium text-sm">{task.title}</p>
+                    <p className="text-xs text-muted-foreground">
+                      Venceu em {format(new Date(task.due_date), "dd/MM/yyyy", { locale: ptBR })}
+                    </p>
+                  </div>
+                </div>
               ))}
             </div>
           </CardContent>
         </Card>
-      </div>
+      )}
 
-      {/* Upcoming Deadlines */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Calendar className="h-5 w-5" />
-            Próximos Prazos
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {upcomingTasks.map((task) => (
-              <TaskCard key={task.id} task={task} />
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+      {/* Task Detail Modal */}
+      {selectedTask && (
+        <TaskDetail
+          task={selectedTask}
+          open={!!selectedTask}
+          onOpenChange={(open) => !open && setSelectedTask(null)}
+        />
+      )}
     </div>
   );
 };

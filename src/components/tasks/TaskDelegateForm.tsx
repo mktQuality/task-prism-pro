@@ -27,6 +27,7 @@ import {
 import { UserPlus } from "lucide-react";
 import { Task } from "@/types/database";
 import { useUpdateTask } from "@/hooks/useTasks";
+import { useProfiles } from "@/hooks/useProfiles";
 import { useToast } from "@/hooks/use-toast";
 
 const delegateFormSchema = z.object({
@@ -42,17 +43,10 @@ interface TaskDelegateFormProps {
   onOpenChange: (open: boolean) => void;
 }
 
-// Mock users - in a real app, this would come from an API
-const MOCK_USERS = [
-  { id: "user1", name: "João Silva", email: "joao@empresa.com" },
-  { id: "user2", name: "Maria Santos", email: "maria@empresa.com" },
-  { id: "user3", name: "Pedro Costa", email: "pedro@empresa.com" },
-  { id: "user4", name: "Ana Oliveira", email: "ana@empresa.com" },
-];
-
 export const TaskDelegateForm = ({ task, open, onOpenChange }: TaskDelegateFormProps) => {
   const { toast } = useToast();
   const updateTask = useUpdateTask();
+  const { data: profiles = [], isLoading: loadingProfiles } = useProfiles();
 
   const form = useForm<DelegateFormData>({
     resolver: zodResolver(delegateFormSchema),
@@ -127,16 +121,28 @@ export const TaskDelegateForm = ({ task, open, onOpenChange }: TaskDelegateFormP
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {MOCK_USERS.map((user) => (
-                        <SelectItem key={user.id} value={user.id}>
-                          <div className="flex flex-col">
-                            <span>{user.name}</span>
-                            <span className="text-xs text-muted-foreground">
-                              {user.email}
-                            </span>
-                          </div>
+                      {loadingProfiles ? (
+                        <SelectItem value="loading" disabled>
+                          Carregando usuários...
                         </SelectItem>
-                      ))}
+                      ) : profiles.length === 0 ? (
+                        <SelectItem value="no-users" disabled>
+                          Nenhum usuário encontrado
+                        </SelectItem>
+                      ) : (
+                        profiles
+                          .filter(profile => profile.user_id !== task.created_by)
+                          .map((profile) => (
+                            <SelectItem key={profile.user_id} value={profile.user_id}>
+                              <div className="flex flex-col">
+                                <span>{profile.name}</span>
+                                <span className="text-xs text-muted-foreground">
+                                  {profile.email} • {profile.sector}
+                                </span>
+                              </div>
+                            </SelectItem>
+                          ))
+                      )}
                     </SelectContent>
                   </Select>
                   <FormMessage />
