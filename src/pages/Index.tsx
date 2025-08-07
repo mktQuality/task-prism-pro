@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { Header } from "@/components/layout/Header";
 import { DashboardView } from "@/components/dashboard/DashboardView";
+import { TaskList } from "@/components/tasks/TaskList";
 import { useTasks } from "@/hooks/useTasks";
 
 const Index = () => {
@@ -21,7 +22,7 @@ const Index = () => {
       case "dashboard":
         return <DashboardView tasks={tasks} />;
       case "tasks":
-        return <div className="p-6">Gerenciamento de Tarefas (Em desenvolvimento)</div>;
+        return <TaskList />;
       case "urgent":
         return <div className="p-6">Tarefas Urgentes (Em desenvolvimento)</div>;
       case "overdue":
