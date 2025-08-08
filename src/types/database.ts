@@ -34,6 +34,7 @@ export interface Task {
   due_date: string;
   completed_at: string | null;
   is_project: boolean;
+  project_id: string | null; // parent project reference (null for standalone or for projects)
   comments: string[];
   created_at: string;
   updated_at: string;

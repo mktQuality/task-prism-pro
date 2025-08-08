@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { TaskCard } from "@/components/tasks/TaskCard";
 import { TaskForm } from "@/components/tasks/TaskForm";
-import { TaskDetail } from "@/components/tasks/TaskDetail";
+import { ProjectDetail } from "@/components/projects/ProjectDetail";
 import { useTasks } from "@/hooks/useTasks";
 import { Plus, Search } from "lucide-react";
 import { Task } from "@/types/database";
@@ -78,13 +78,13 @@ export const ProjectsView = () => {
 
       {/* Create/Edit Modal */}
       {showTaskForm && (
-        <TaskForm open={showTaskForm} onOpenChange={setShowTaskForm} task={null} />
+        <TaskForm open={showTaskForm} onOpenChange={setShowTaskForm} task={null} defaultIsProject={true} />
       )}
 
       {/* Detail Modal */}
       {selectedTask && (
-        <TaskDetail
-          task={selectedTask}
+        <ProjectDetail
+          project={selectedTask}
           open={!!selectedTask}
           onOpenChange={(open) => !open && setSelectedTask(null)}
         />

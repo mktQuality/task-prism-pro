@@ -77,10 +77,11 @@ export const useCreateTask = () => {
       assigned_to?: string;
       due_date: string;
       is_project?: boolean;
+      project_id?: string | null;
     }) => {
       const { data, error } = await supabase
         .from('tasks')
-        .insert([{
+        .insert([{ 
           ...task,
           created_by: (await supabase.auth.getUser()).data.user?.id,
         }])

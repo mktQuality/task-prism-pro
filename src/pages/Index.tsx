@@ -25,6 +25,8 @@ const Index = () => {
         return <DashboardView tasks={tasks} />;
       case "tasks":
         return <TaskList openNewTaskForm={openNewTaskForm} onNewTaskHandled={() => setOpenNewTaskForm(false)} />;
+      case "projects":
+        return <ProjectsView />;
       case "urgent":
         return <div className="p-6">Tarefas Urgentes (Em desenvolvimento)</div>;
       case "overdue":

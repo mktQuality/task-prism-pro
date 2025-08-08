@@ -47,6 +47,7 @@ const taskFormSchema = z.object({
     required_error: "Data de vencimento é obrigatória",
   }),
   is_project: z.boolean().default(false),
+  project_id: z.string().optional(),
 });
 
 type TaskFormData = z.infer<typeof taskFormSchema>;
@@ -55,9 +56,11 @@ interface TaskFormProps {
   task?: Task | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  parentProjectId?: string;
+  defaultIsProject?: boolean;
 }
 
-export const TaskForm = ({ task, open, onOpenChange }: TaskFormProps) => {
+export const TaskForm = ({ task, open, onOpenChange, parentProjectId, defaultIsProject }: TaskFormProps) => {
   const { toast } = useToast();
   const createTask = useCreateTask();
   const updateTask = useUpdateTask();
@@ -73,32 +76,35 @@ export const TaskForm = ({ task, open, onOpenChange }: TaskFormProps) => {
       assigned_to: "",
       due_date: new Date(),
       is_project: false,
+      project_id: "",
     },
   });
 
-  useEffect(() => {
-    if (task) {
-      form.reset({
-        title: task.title,
-        description: task.description || "",
-        classification_id: task.classification_id || "",
-        priority: task.priority,
-        assigned_to: task.assigned_to || "",
-        due_date: new Date(task.due_date),
-        is_project: task.is_project,
-      });
-    } else {
-      form.reset({
-        title: "",
-        description: "",
-        classification_id: "",
-        priority: "media",
-        assigned_to: "",
-        due_date: new Date(),
-        is_project: false,
-      });
-    }
-  }, [task, form]);
+useEffect(() => {
+  if (task) {
+    form.reset({
+      title: task.title,
+      description: task.description || "",
+      classification_id: task.classification_id || "",
+      priority: task.priority,
+      assigned_to: task.assigned_to || "",
+      due_date: new Date(task.due_date),
+      is_project: task.is_project,
+      project_id: task.project_id || "",
+    });
+  } else {
+    form.reset({
+      title: "",
+      description: "",
+      classification_id: "",
+      priority: "media",
+      assigned_to: "",
+      due_date: new Date(),
+      is_project: defaultIsProject ?? false,
+      project_id: parentProjectId || "",
+    });
+  }
+}, [task, form, parentProjectId, defaultIsProject]);
 
   const onSubmit = async (data: TaskFormData) => {
     try {
@@ -110,6 +116,7 @@ export const TaskForm = ({ task, open, onOpenChange }: TaskFormProps) => {
         assigned_to: data.assigned_to,
         due_date: data.due_date.toISOString(),
         is_project: data.is_project,
+        project_id: parentProjectId || (task?.project_id ?? undefined),
       };
 
       if (task) {
@@ -144,7 +151,7 @@ export const TaskForm = ({ task, open, onOpenChange }: TaskFormProps) => {
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
-            {task ? "Editar Tarefa" : "Nova Tarefa"}
+            {task ? "Editar Tarefa" : parentProjectId ? "Nova Atividade" : "Nova Tarefa"}
           </DialogTitle>
         </DialogHeader>
 
@@ -274,28 +281,30 @@ export const TaskForm = ({ task, open, onOpenChange }: TaskFormProps) => {
                 )}
               />
 
-              <FormField
-                control={form.control}
-                name="is_project"
-                render={({ field }) => (
-                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                    <div className="space-y-0.5">
-                      <FormLabel className="text-base">
-                        É um projeto?
-                      </FormLabel>
-                      <div className="text-sm text-muted-foreground">
-                        Marque se esta tarefa representa um projeto maior
+              {!parentProjectId && (
+                <FormField
+                  control={form.control}
+                  name="is_project"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                      <div className="space-y-0.5">
+                        <FormLabel className="text-base">
+                          É um projeto?
+                        </FormLabel>
+                        <div className="text-sm text-muted-foreground">
+                          Marque se esta tarefa representa um projeto maior
+                        </div>
                       </div>
-                    </div>
-                    <FormControl>
-                      <Switch
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
+                      <FormControl>
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+              )}
             </div>
 
             <div className="flex gap-4 justify-end">
