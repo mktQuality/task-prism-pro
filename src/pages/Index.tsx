@@ -3,10 +3,12 @@ import { Sidebar } from "@/components/layout/Sidebar";
 import { Header } from "@/components/layout/Header";
 import { DashboardView } from "@/components/dashboard/DashboardView";
 import { TaskList } from "@/components/tasks/TaskList";
+import { ProjectsView } from "@/components/projects/ProjectsView";
 import { useTasks } from "@/hooks/useTasks";
 
 const Index = () => {
   const [activeSection, setActiveSection] = useState("dashboard");
+  const [openNewTaskForm, setOpenNewTaskForm] = useState(false);
   const { data: tasks = [], isLoading } = useTasks();
 
   const renderContent = () => {
@@ -22,7 +24,7 @@ const Index = () => {
       case "dashboard":
         return <DashboardView tasks={tasks} />;
       case "tasks":
-        return <TaskList />;
+        return <TaskList openNewTaskForm={openNewTaskForm} onNewTaskHandled={() => setOpenNewTaskForm(false)} />;
       case "urgent":
         return <div className="p-6">Tarefas Urgentes (Em desenvolvimento)</div>;
       case "overdue":

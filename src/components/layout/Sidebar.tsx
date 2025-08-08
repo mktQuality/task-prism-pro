@@ -9,18 +9,21 @@ import {
   Settings, 
   Plus,
   Clock,
-  AlertTriangle
+  AlertTriangle,
+  FolderTree
 } from "lucide-react";
 
 interface SidebarProps {
   activeSection: string;
   onSectionChange: (section: string) => void;
+  onNewTask?: () => void;
 }
 
-export const Sidebar = ({ activeSection, onSectionChange }: SidebarProps) => {
+export const Sidebar = ({ activeSection, onSectionChange, onNewTask }: SidebarProps) => {
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: Home },
     { id: 'tasks', label: 'Tarefas', icon: CheckSquare, badge: '12' },
+    { id: 'projects', label: 'Projetos', icon: FolderTree },
     { id: 'urgent', label: 'Urgentes', icon: AlertTriangle, badge: '3' },
     { id: 'overdue', label: 'Atrasadas', icon: Clock, badge: '2' },
     { id: 'team', label: 'Equipe', icon: Users },
@@ -43,6 +46,13 @@ export const Sidebar = ({ activeSection, onSectionChange }: SidebarProps) => {
         <Button 
           className="w-full mb-6 bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary text-primary-foreground shadow-lg"
           size="sm"
+          onClick={() => {
+            if (typeof onNewTask === 'function') {
+              onNewTask();
+            } else {
+              onSectionChange('tasks');
+            }
+          }}
         >
           <Plus className="h-4 w-4 mr-2" />
           Nova Tarefa

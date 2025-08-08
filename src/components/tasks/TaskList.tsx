@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,7 +11,12 @@ import { Task } from "@/types/database";
 import { useTasks, useTaskClassifications } from "@/hooks/useTasks";
 import { Plus, Search, Filter } from "lucide-react";
 
-export const TaskList = () => {
+interface TaskListProps {
+  openNewTaskForm?: boolean;
+  onNewTaskHandled?: () => void;
+}
+
+export const TaskList = ({ openNewTaskForm = false, onNewTaskHandled }: TaskListProps) => {
   const { data: tasks = [], isLoading } = useTasks();
   const { data: classifications = [] } = useTaskClassifications();
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
@@ -20,14 +25,21 @@ export const TaskList = () => {
   const [statusFilter, setStatusFilter] = useState("all");
   const [priorityFilter, setPriorityFilter] = useState("all");
 
-  const filteredTasks = tasks.filter(task => {
-    const matchesSearch = task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         task.description?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === "all" || task.status === statusFilter;
-    const matchesPriority = priorityFilter === "all" || task.priority === priorityFilter;
-    
-    return matchesSearch && matchesStatus && matchesPriority;
-  });
+useEffect(() => {
+  if (openNewTaskForm) {
+    setShowTaskForm(true);
+    onNewTaskHandled?.();
+  }
+}, [openNewTaskForm, onNewTaskHandled]);
+
+const filteredTasks = tasks.filter(task => {
+  const matchesSearch = task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                       task.description?.toLowerCase().includes(searchTerm.toLowerCase());
+  const matchesStatus = statusFilter === "all" || task.status === statusFilter;
+  const matchesPriority = priorityFilter === "all" || task.priority === priorityFilter;
+  
+  return matchesSearch && matchesStatus && matchesPriority;
+});
 
   const tasksByStatus = {
     pendente: filteredTasks.filter(t => t.status === 'pendente'),
