@@ -108,15 +108,17 @@ useEffect(() => {
 
   const onSubmit = async (data: TaskFormData) => {
     try {
+      const normalize = (v?: string | null) => (v && v.trim().length > 0 ? v : undefined);
+
       const taskData = {
         title: data.title,
-        description: data.description,
-        classification_id: data.classification_id,
+        description: data.description?.trim() ? data.description : undefined,
+        classification_id: normalize(data.classification_id),
         priority: data.priority,
-        assigned_to: data.assigned_to,
+        assigned_to: normalize(data.assigned_to),
         due_date: data.due_date.toISOString(),
         is_project: data.is_project,
-        project_id: parentProjectId || (task?.project_id ?? undefined),
+        project_id: parentProjectId ?? normalize(task?.project_id ?? undefined),
       };
 
       if (task) {
