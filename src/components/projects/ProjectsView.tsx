@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,6 +15,17 @@ export const ProjectsView = () => {
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [showTaskForm, setShowTaskForm] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [tab, setTab] = useState<'page' | 'list'>(() => {
+    const v = new URLSearchParams(window.location.search).get('view');
+    return v === 'list' ? 'list' : 'page';
+  });
+
+  useEffect(() => {
+    const sp = new URLSearchParams(window.location.search);
+    sp.set('view', tab);
+    const url = `${window.location.pathname}?${sp.toString()}`;
+    window.history.replaceState({}, '', url);
+  }, [tab]);
 
   const projects = tasks.filter(t => t.is_project);
   const filtered = projects.filter(task =>
@@ -61,8 +72,7 @@ export const ProjectsView = () => {
           </div>
         </CardContent>
       </Card>
-
-      <Tabs defaultValue="page" className="w-full">
+      <Tabs value={tab} onValueChange={(v) => setTab(v as 'page' | 'list')} className="w-full">
         <TabsList>
           <TabsTrigger value="page">Página</TabsTrigger>
           <TabsTrigger value="list">Lista</TabsTrigger>
