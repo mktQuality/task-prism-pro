@@ -5,10 +5,11 @@ import { Input } from "@/components/ui/input";
 import { TaskCard } from "@/components/tasks/TaskCard";
 import { TaskForm } from "@/components/tasks/TaskForm";
 import { ProjectDetail } from "@/components/projects/ProjectDetail";
+import { ProjectsListTable } from "@/components/projects/ProjectsListTable";
 import { useTasks } from "@/hooks/useTasks";
 import { Plus, Search } from "lucide-react";
 import { Task } from "@/types/database";
-
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 export const ProjectsView = () => {
   const { data: tasks = [], isLoading } = useTasks();
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
@@ -61,20 +62,32 @@ export const ProjectsView = () => {
         </CardContent>
       </Card>
 
-      {/* Projects Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {filtered.map((task) => (
-          <TaskCard key={task.id} task={task} onTaskClick={setSelectedTask} />
-        ))}
-      </div>
+      <Tabs defaultValue="page" className="w-full">
+        <TabsList>
+          <TabsTrigger value="page">Página</TabsTrigger>
+          <TabsTrigger value="list">Lista</TabsTrigger>
+        </TabsList>
 
-      {filtered.length === 0 && (
-        <Card>
-          <CardContent className="p-8 text-center">
-            <p className="text-muted-foreground">Nenhum projeto encontrado.</p>
-          </CardContent>
-        </Card>
-      )}
+        <TabsContent value="page" className="mt-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {filtered.map((task) => (
+              <TaskCard key={task.id} task={task} onTaskClick={setSelectedTask} />
+            ))}
+          </div>
+
+          {filtered.length === 0 && (
+            <Card className="mt-4">
+              <CardContent className="p-8 text-center">
+                <p className="text-muted-foreground">Nenhum projeto encontrado.</p>
+              </CardContent>
+            </Card>
+          )}
+        </TabsContent>
+
+        <TabsContent value="list" className="mt-4">
+          <ProjectsListTable projects={filtered} allTasks={tasks} onProjectClick={setSelectedTask} />
+        </TabsContent>
+      </Tabs>
 
       {/* Create/Edit Modal */}
       {showTaskForm && (
