@@ -4,6 +4,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
 interface ProjectsListTableProps {
   projects: Task[];
@@ -52,7 +53,10 @@ export const ProjectsListTable = ({ projects, allTasks, onProjectClick }: Projec
 
   const formatDate = (iso?: string | null) => {
     if (!iso) return "-";
-    try { return format(new Date(iso), "dd/MM/yy"); } catch { return "-"; }
+    try {
+      const s = format(new Date(iso), "dd-LLL", { locale: ptBR });
+      return s.replace('.', '').toLowerCase();
+    } catch { return "-"; }
   };
 
   return (
@@ -72,81 +76,101 @@ export const ProjectsListTable = ({ projects, allTasks, onProjectClick }: Projec
           </TableRow>
         </TableHeader>
         <TableBody>
-          {groups.map(([groupName, groupProjects]) => (
-            <>
-              <TableRow key={`group-${groupName}`} className="bg-accent/40">
-                <TableCell colSpan={9} className="font-semibold">{groupName}</TableCell>
-              </TableRow>
+          {groups.map(([groupName, groupProjects]) => {
+            const computeProgress = (project: Task) => {
+              const activities = getActivities(project.id);
+              const total = activities.length;
+              const completed = activities.filter(a => a.status === 'concluida').length;
+              return total > 0 ? Math.round((completed / total) * 100) : (project.status === 'concluida' ? 100 : 0);
+            };
+            const groupProgress = groupProjects.length
+              ? Math.round(groupProjects.map(computeProgress).reduce((a, b) => a + b, 0) / groupProjects.length)
+              : 0;
 
-              {groupProjects.map((project) => {
-                const activities = getActivities(project.id);
-                const total = activities.length;
-                const completed = activities.filter(a => a.status === 'concluida').length;
-                const progress = total > 0 ? Math.round((completed / total) * 100) : (project.status === 'concluida' ? 100 : 0);
+            return (
+              <>
+                <TableRow key={`group-${groupName}`} className="bg-accent/40">
+                  <TableCell colSpan={9} className="font-semibold">
+                    <div className="flex items-center justify-between">
+                      <span>{groupName}</span>
+                      <div className="flex items-center gap-2">
+                        <Progress value={groupProgress} className="h-2 w-40" />
+                        <span className="text-sm text-muted-foreground w-10 text-right">{groupProgress}%</span>
+                      </div>
+                    </div>
+                  </TableCell>
+                </TableRow>
 
-                const startDate = new Date(project.created_at);
-                const endRef = safeDate(project.completed_at) || safeDate(project.due_date) || new Date();
-                const business = businessDaysBetween(startDate, endRef);
-                const calendar = daysBetween(startDate, endRef);
+                {groupProjects.map((project) => {
+                  const activities = getActivities(project.id);
+                  const total = activities.length;
+                  const completed = activities.filter(a => a.status === 'concluida').length;
+                  const progress = total > 0 ? Math.round((completed / total) * 100) : (project.status === 'concluida' ? 100 : 0);
 
-                return (
-                  <>
-                    <TableRow
-                      key={project.id}
-                      className={cn("cursor-pointer hover:bg-accent/50")}
-                      onClick={() => onProjectClick?.(project)}
-                    >
-                      <TableCell className="font-medium">{project.title}</TableCell>
-                      <TableCell>{project.assigned_to_profile?.name || '-'}</TableCell>
-                      <TableCell>{formatDate(project.created_at)}</TableCell>
-                      <TableCell>{business}</TableCell>
-                      <TableCell>{calendar}</TableCell>
-                      <TableCell>{formatDate(project.due_date)}</TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <Progress value={progress} className="h-2" />
-                          <span className="text-sm text-muted-foreground w-10 text-right">{progress}%</span>
-                        </div>
-                      </TableCell>
-                      <TableCell className="capitalize">{String(project.status).replace(/_/g, ' ')}</TableCell>
-                      <TableCell className="truncate max-w-[240px]">
-                        {project.comments && project.comments.length > 0 ? project.comments[0] : '-'}
-                      </TableCell>
-                    </TableRow>
+                  const startDate = new Date(project.created_at);
+                  const endRef = safeDate(project.completed_at) || safeDate(project.due_date) || new Date();
+                  const business = businessDaysBetween(startDate, endRef);
+                  const calendar = daysBetween(startDate, endRef);
 
-                    {activities.map((act) => {
-                      const aStart = new Date(act.created_at);
-                      const aEndRef = safeDate(act.completed_at) || safeDate(act.due_date) || new Date();
-                      const aBusiness = businessDaysBetween(aStart, aEndRef);
-                      const aCalendar = daysBetween(aStart, aEndRef);
-                      const aProgress = act.status === 'concluida' ? 100 : 0;
+                  return (
+                    <>
+                      <TableRow
+                        key={project.id}
+                        className={cn("cursor-pointer hover:bg-accent/50")}
+                        onClick={() => onProjectClick?.(project)}
+                      >
+                        <TableCell className="font-medium">{project.title}</TableCell>
+                        <TableCell>{project.assigned_to_profile?.name || '-'}</TableCell>
+                        <TableCell>{formatDate(project.created_at)}</TableCell>
+                        <TableCell>{business}</TableCell>
+                        <TableCell>{calendar}</TableCell>
+                        <TableCell>{formatDate(project.due_date)}</TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <Progress value={progress} className="h-2" />
+                            <span className="text-sm text-muted-foreground w-10 text-right">{progress}%</span>
+                          </div>
+                        </TableCell>
+                        <TableCell className="capitalize">{String(project.status).replace(/_/g, ' ')}</TableCell>
+                        <TableCell className="truncate max-w-[240px]">
+                          {project.comments && project.comments.length > 0 ? project.comments[0] : '-'}
+                        </TableCell>
+                      </TableRow>
 
-                      return (
-                        <TableRow key={act.id} className="">
-                          <TableCell className="pl-8">{act.title}</TableCell>
-                          <TableCell>{act.assigned_to_profile?.name || '-'}</TableCell>
-                          <TableCell>{formatDate(act.created_at)}</TableCell>
-                          <TableCell>{aBusiness}</TableCell>
-                          <TableCell>{aCalendar}</TableCell>
-                          <TableCell>{formatDate(act.due_date)}</TableCell>
-                          <TableCell>
-                            <div className="flex items-center gap-2">
-                              <Progress value={aProgress} className="h-2" />
-                              <span className="text-sm text-muted-foreground w-10 text-right">{aProgress}%</span>
-                            </div>
-                          </TableCell>
-                          <TableCell className="capitalize">{String(act.status).replace(/_/g, ' ')}</TableCell>
-                          <TableCell className="truncate max-w-[240px]">
-                            {act.comments && act.comments.length > 0 ? act.comments[0] : '-'}
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })}
-                  </>
-                );
-              })}
-            </>
-          ))}
+                      {activities.map((act) => {
+                        const aStart = new Date(act.created_at);
+                        const aEndRef = safeDate(act.completed_at) || safeDate(act.due_date) || new Date();
+                        const aBusiness = businessDaysBetween(aStart, aEndRef);
+                        const aCalendar = daysBetween(aStart, aEndRef);
+                        const aProgress = act.status === 'concluida' ? 100 : 0;
+
+                        return (
+                          <TableRow key={act.id} className="">
+                            <TableCell className="pl-8">{act.title}</TableCell>
+                            <TableCell>{act.assigned_to_profile?.name || '-'}</TableCell>
+                            <TableCell>{formatDate(act.created_at)}</TableCell>
+                            <TableCell>{aBusiness}</TableCell>
+                            <TableCell>{aCalendar}</TableCell>
+                            <TableCell>{formatDate(act.due_date)}</TableCell>
+                            <TableCell>
+                              <div className="flex items-center gap-2">
+                                <Progress value={aProgress} className="h-2" />
+                                <span className="text-sm text-muted-foreground w-10 text-right">{aProgress}%</span>
+                              </div>
+                            </TableCell>
+                            <TableCell className="capitalize">{String(act.status).replace(/_/g, ' ')}</TableCell>
+                            <TableCell className="truncate max-w-[240px]">
+                              {act.comments && act.comments.length > 0 ? act.comments[0] : '-'}
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </>
+                  );
+                })}
+              </>
+            );
+          })}
         </TableBody>
       </Table>
     </div>
