@@ -148,7 +148,19 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      current_user_in_roles: {
+        Args: { roles: Database["public"]["Enums"]["user_role"][] }
+        Returns: boolean
+      }
+      list_profiles_minimal: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          user_id: string
+          name: string
+          role: Database["public"]["Enums"]["user_role"]
+          sector: string
+        }[]
+      }
     }
     Enums: {
       task_priority: "baixa" | "media" | "alta" | "urgente"

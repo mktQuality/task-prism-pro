@@ -27,7 +27,7 @@ import {
 import { UserPlus } from "lucide-react";
 import { Task } from "@/types/database";
 import { useUpdateTask } from "@/hooks/useTasks";
-import { useProfiles } from "@/hooks/useProfiles";
+import { usePublicProfiles } from "@/hooks/usePublicProfiles";
 import { useToast } from "@/hooks/use-toast";
 
 const delegateFormSchema = z.object({
@@ -46,7 +46,7 @@ interface TaskDelegateFormProps {
 export const TaskDelegateForm = ({ task, open, onOpenChange }: TaskDelegateFormProps) => {
   const { toast } = useToast();
   const updateTask = useUpdateTask();
-  const { data: profiles = [], isLoading: loadingProfiles } = useProfiles();
+  const { data: profiles = [], isLoading: loadingProfiles } = usePublicProfiles();
 
   const form = useForm<DelegateFormData>({
     resolver: zodResolver(delegateFormSchema),
@@ -137,7 +137,7 @@ export const TaskDelegateForm = ({ task, open, onOpenChange }: TaskDelegateFormP
                               <div className="flex flex-col">
                                 <span>{profile.name}</span>
                                 <span className="text-xs text-muted-foreground">
-                                  {profile.email} • {profile.sector}
+                                  {profile.role} • {profile.sector ?? "Sem setor"}
                                 </span>
                               </div>
                             </SelectItem>
